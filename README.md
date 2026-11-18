@@ -11,7 +11,7 @@
 
 ## Установка
 
-1. Скачайте `Cassandra-win-Setup.exe` со страницы [Releases](https://github.com/skorjin/Cassandra/releases)
+1. Скачайте [Cassandra-win-Setup.exe](https://github.com/skorjin/Cassandra/releases/latest/download/Cassandra-win-Setup.exe) (всегда последняя версия; все релизы на странице [Releases](https://github.com/skorjin/Cassandra/releases))
    и запустите. Нужны Windows 10/11 x64; .NET 10 установщик поставит сам.
 2. При первом запуске выберите модель перевода и нажмите «Скачать» (см. ниже).
 3. Поставьте игру в режим **«Окно без рамки»**. Поверх эксклюзивного полноэкранного режима оверлей не виден.
