@@ -1,0 +1,107 @@
+<Window x:Class="Cassandra.Presentation.Views.HudWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:v="clr-namespace:Cassandra.Presentation.Views"
+        Title="Cassandra"
+        Width="340" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" Topmost="True" ShowInTaskbar="False" ShowActivated="False"
+        TextOptions.TextFormattingMode="Display" UseLayoutRounding="True"
+        FontFamily="Segoe UI">
+    <Border CornerRadius="8" BorderThickness="1" BorderBrush="{StaticResource LineBrush}" SnapsToDevicePixels="True">
+        <Border.Background>
+            <MultiBinding Converter="{StaticResource HudBackgroundConverter}">
+                <Binding Path="Settings.TintColor"/>
+                <Binding Path="Settings.Opacity"/>
+            </MultiBinding>
+        </Border.Background>
+
+        <StackPanel>
+            <!-- Header: drag handle, status dot, language, icons -->
+            <Grid x:Name="Header" Background="Transparent" Height="32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Ellipse Grid.Column="0" Width="8" Height="8" Margin="11,0,7,0" VerticalAlignment="Center">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Fill" Value="{StaticResource RunBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                    <Setter Property="Fill" Value="{StaticResource WarnBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+                <TextBlock Grid.Column="1" Text="CASSANDRA" Foreground="{StaticResource MutedBrush}" FontSize="11" FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="{Binding LanguageLabel}" Style="{StaticResource CaptionText}"
+                           VerticalAlignment="Center" Margin="7,0,0,0"/>
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="0,0,5,0" VerticalAlignment="Center">
+                    <Button Style="{StaticResource IconButton}" Command="{Binding OpenReplyCommand}"
+                            ToolTip="Написать ответ (Ctrl+Alt+R)" AutomationProperties.Name="Написать ответ">
+                        <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPencil}"/>
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" Command="{Binding TogglePauseCommand}"
+                            ToolTip="Пауза / возобновить (Ctrl+Alt+P)" AutomationProperties.Name="Пауза">
+                        <Grid>
+                            <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPause}"
+                                  Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"/>
+                            <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPlay}" Fill="{StaticResource TextBrush}"
+                                  Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibility}}"/>
+                        </Grid>
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" Command="{Binding ToggleSettingsCommand}"
+                            ToolTip="Настройки" AutomationProperties.Name="Настройки">
+                        <Grid>
+                            <Path Style="{StaticResource IconPath}" Data="{StaticResource IconGear}"/>
+                            <!-- badge: an app update is waiting -->
+                            <Ellipse Width="6" Height="6" Fill="{StaticResource SpeakerBrush}" HorizontalAlignment="Right"
+                                     VerticalAlignment="Top" Margin="0,-3,-4,0"
+                                     Visibility="{Binding Update.HasUpdate, Converter={StaticResource BoolToVisibility}}"/>
+                        </Grid>
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" Command="{Binding CloseCommand}"
+                            ToolTip="Закрыть" AutomationProperties.Name="Закрыть">
+                        <Path Style="{StaticResource IconPath}" Data="{StaticResource IconClose}"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <Rectangle Height="1" Fill="{StaticResource LineBrush}"/>
+
+            <!-- Translated text and, when paused, the editor -->
+            <StackPanel Margin="10,8,10,10">
+                <v:TranslationView/>
+
+                <StackPanel Margin="0,8,0,0" Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibility}}">
+                    <Rectangle Height="1" Fill="{StaticResource LineBrush}" Margin="0,0,0,8"/>
+                    <Border Background="#4D000000" CornerRadius="6" Padding="2" Margin="0,0,0,8">
+                        <UniformGrid Rows="1">
+                            <RadioButton GroupName="Tab" Style="{StaticResource SegmentButton}" Content="Оригинал"
+                                         IsChecked="{Binding IsOriginalTab, Mode=OneWay}" Command="{Binding SelectOriginalTabCommand}"/>
+                            <RadioButton GroupName="Tab" Style="{StaticResource SegmentButton}" Content="Мой ответ"
+                                         IsChecked="{Binding IsReplyTab, Mode=OneWay}" Command="{Binding SelectReplyTabCommand}"/>
+                        </UniformGrid>
+                    </Border>
+                    <v:SourceEditorView DataContext="{Binding SourceEditor}"
+                                        Visibility="{Binding DataContext.IsOriginalTab, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}"/>
+                    <v:ReplyView x:Name="ReplyPanel" DataContext="{Binding Reply}"
+                                 Visibility="{Binding DataContext.IsReplyTab, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Settings drawer -->
+            <StackPanel Visibility="{Binding IsSettingsOpen, Converter={StaticResource BoolToVisibility}}">
+                <Rectangle Height="1" Fill="{StaticResource LineBrush}"/>
+                <v:SettingsDrawerView/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>
