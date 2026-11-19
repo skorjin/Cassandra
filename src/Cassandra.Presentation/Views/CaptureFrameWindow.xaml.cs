@@ -6,6 +6,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using Cassandra.Domain.Abstractions;
 using Cassandra.Domain.Models;
+using Cassandra.Presentation.Services;
 using Cassandra.Presentation.State;
 using Cassandra.Presentation.ViewModels;
 
@@ -24,16 +25,18 @@ public partial class CaptureFrameWindow : Window
 
     private readonly CaptureFrameViewModel _viewModel;
     private readonly IWindowStyler _styler;
+    private readonly IScreenLayout _screens;
     private IntPtr _hwnd;
     private CaptureRegion _bounds;
     private CaptureRegion _resizeStartBounds;
     private Point _resizeStartCursor;
 
-    public CaptureFrameWindow(CaptureFrameViewModel viewModel, IWindowStyler styler)
+    public CaptureFrameWindow(CaptureFrameViewModel viewModel, IWindowStyler styler, IScreenLayout screens)
     {
         InitializeComponent();
         _viewModel = viewModel;
         _styler = styler;
+        _screens = screens;
         DataContext = viewModel;
         _bounds = Inflate(viewModel.Region);
 
@@ -44,6 +47,7 @@ public partial class CaptureFrameWindow : Window
         WireThumb(BottomRight, left: false, top: false);
 
         viewModel.Overlay.PropertyChanged += OnOverlayChanged;
+        viewModel.Overlay.LayoutResetRequested += () => MoveOntoPrimaryMonitor(force: true);
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -55,8 +59,24 @@ public partial class CaptureFrameWindow : Window
         _styler.HideFromTaskSwitcher(_hwnd);
         _styler.ExcludeFromCapture(_hwnd);
         _styler.SetActivatable(_hwnd, false);
+        MoveOntoPrimaryMonitor(force: false); // a saved spot on a monitor that is gone must not hide the frame
         _styler.SetBounds(_hwnd, _bounds);
         ApplyVisibility();
+    }
+
+    /// <summary>Puts the frame on the primary monitor: always when forced, otherwise only if it is out of reach.</summary>
+    private void MoveOntoPrimaryMonitor(bool force)
+    {
+        if (force || !WindowPlacement.IsReachable(_bounds, _screens.WorkAreas))
+        {
+            _bounds = WindowPlacement.FrameDefault(_bounds, _screens.PrimaryWorkArea);
+            if (_hwnd != IntPtr.Zero)
+            {
+                _styler.SetBounds(_hwnd, _bounds);
+            }
+
+            PublishRegion();
+        }
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

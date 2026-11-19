@@ -71,6 +71,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IForegroundWindowService, Win32ForegroundWindowService>();
         services.AddSingleton<IHotkeyService, Win32HotkeyService>();
         services.AddSingleton<ITrayIcon, WinFormsTrayIcon>();
+        services.AddSingleton<IScreenLayout, WinFormsScreenLayout>();
         services.AddSingleton<ModelStorage>();
         services.AddSingleton<IModelStore>(sp => sp.GetRequiredService<ModelStorage>());
         services.AddSingleton<IModelDownloader, HttpModelDownloader>();

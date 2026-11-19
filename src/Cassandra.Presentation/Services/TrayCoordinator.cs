@@ -29,6 +29,7 @@ public sealed class TrayCoordinator : IDisposable
         new(_hud.IsPaused ? "Продолжить перевод" : "Пауза", () => _hud.TogglePauseCommand.Execute(null)),
         new("Двигать рамку захвата", () => _hud.ToggleFrameEditCommand.Execute(null), _overlay.IsFrameEditMode),
         new("Настройки", OpenSettings),
+        new("Сбросить расположение окон", _overlay.RequestLayoutReset),
         TrayMenuItem.Separator,
         new("Выход", () => _hud.CloseCommand.Execute(null)),
     ];

@@ -5,6 +5,7 @@ using System.Windows.Interop;
 using Cassandra.Application.Settings;
 using Cassandra.Domain.Abstractions;
 using Cassandra.Domain.Models;
+using Cassandra.Presentation.Services;
 using Cassandra.Presentation.State;
 using Cassandra.Presentation.ViewModels;
 
@@ -23,16 +24,18 @@ public partial class HudWindow : Window
     private readonly OverlayState _overlay;
     private readonly IWindowStyler _styler;
     private readonly ISettingsService _settings;
+    private readonly IScreenLayout _screens;
     private IntPtr _hwnd;
     private bool _textArmed;
 
-    public HudWindow(HudViewModel viewModel, OverlayState overlay, IWindowStyler styler, ISettingsService settings)
+    public HudWindow(HudViewModel viewModel, OverlayState overlay, IWindowStyler styler, ISettingsService settings, IScreenLayout screens)
     {
         InitializeComponent();
         _viewModel = viewModel;
         _overlay = overlay;
         _styler = styler;
         _settings = settings;
+        _screens = screens;
         DataContext = viewModel;
 
         var bounds = settings.Current.Hud;
@@ -59,6 +62,7 @@ public partial class HudWindow : Window
         _viewModel.ReplyFocusRequested += OnReplyFocusRequested;
         _viewModel.CloseRequested += () => System.Windows.Application.Current.Shutdown();
         _overlay.PropertyChanged += OnOverlayChanged;
+        _overlay.LayoutResetRequested += () => MoveOntoPrimaryMonitor(force: true);
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -69,6 +73,23 @@ public partial class HudWindow : Window
         _styler.ExcludeFromCapture(_hwnd);
         _styler.SetActivatable(_hwnd, false);
         _styler.SetClickThrough(_hwnd, _overlay.IsLocked);
+        MoveOntoPrimaryMonitor(force: false); // a saved spot on a monitor that is gone must not hide the window
+    }
+
+    /// <summary>Puts the HUD on the primary monitor: always when forced, otherwise only if it is out of reach.</summary>
+    private void MoveOntoPrimaryMonitor(bool force)
+    {
+        if (_hwnd == IntPtr.Zero)
+        {
+            return;
+        }
+
+        var bounds = _styler.GetBounds(_hwnd);
+        if (force || !WindowPlacement.IsReachable(bounds, _screens.WorkAreas))
+        {
+            _styler.SetBounds(_hwnd, WindowPlacement.HudDefault(bounds, _screens.PrimaryWorkArea));
+            SaveBounds();
+        }
     }
 
     private void OnHeaderMouseDown(object sender, MouseButtonEventArgs e)

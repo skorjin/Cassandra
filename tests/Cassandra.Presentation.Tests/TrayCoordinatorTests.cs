@@ -65,6 +65,23 @@ public class TrayCoordinatorTests
     }
 
     [Fact]
+    public void Reset_item_raises_the_layout_reset_and_shows_the_overlay()
+    {
+        var h = new Harness();
+        h.Hud.Overlay.IsVisible = false;
+        var raised = 0;
+        h.Hud.Overlay.LayoutResetRequested += () => raised++;
+        var tray = new FakeTray();
+        using var coordinator = new TrayCoordinator(tray, h.Hud, h.Hud.Overlay);
+        coordinator.Start();
+
+        Invoke(tray, "Сбросить расположение окон");
+
+        Assert.Equal(1, raised);
+        Assert.True(h.Hud.Overlay.IsVisible);
+    }
+
+    [Fact]
     public void Disposing_the_coordinator_removes_the_icon()
     {
         var h = new Harness();

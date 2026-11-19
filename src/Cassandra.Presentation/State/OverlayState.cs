@@ -17,6 +17,15 @@ public sealed partial class OverlayState : ObservableObject
     /// <summary>The capture frame can be moved and resized. Otherwise clicks pass through it to the game.</summary>
     public bool CanEditFrame => IsFrameEditMode;
 
+    /// <summary>The player asked to put both windows back on the primary monitor.</summary>
+    public event Action? LayoutResetRequested;
+
+    public void RequestLayoutReset()
+    {
+        IsVisible = true;
+        LayoutResetRequested?.Invoke();
+    }
+
     /// <summary>HUD and capture frame are shown.</summary>
     [ObservableProperty]
     private bool _isVisible = true;
