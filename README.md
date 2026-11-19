@@ -9,6 +9,20 @@
 - **Лёгкий.** Приложение весит около 30 МБ. Модель перевода скачивается отдельно, один раз, и вы выбираете какую.
 - **Не мешает игре.** Когда в чате ничего не меняется, нагрузка на процессор около 0,3% одного ядра.
 
+![Окно с переводом рядом с рамкой захвата на чате](docs/images/overview.png)
+
+Слева рамка захвата на чате игры (здесь для примера условный чат), справа окно с переводом.
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/settings-appearance.png" alt="Настройки: вид"><br><sub>Вид: прозрачность, фон, размер и цвет шрифта</sub></td>
+<td width="50%"><img src="docs/images/settings-models.png" alt="Настройки: модели"><br><sub>Модели: выбор и загрузка с подтверждением размера</sub></td>
+</tr>
+<tr>
+<td colspan="2"><img src="docs/images/reply.png" alt="Ответ по-английски" width="50%"><br><sub>Ответ: пишете по-русски, получаете английский текст для чата игры</sub></td>
+</tr>
+</table>
+
 ## Установка
 
 1. Скачайте [Cassandra-win-Setup.exe](https://github.com/skorjin/Cassandra/releases/latest/download/Cassandra-win-Setup.exe) (всегда последняя версия; все релизы на странице [Releases](https://github.com/skorjin/Cassandra/releases))
