@@ -32,6 +32,7 @@ vpk pack `
     --packVersion $Version `
     --packDir $publish `
     --mainExe Cassandra.exe `
+    --icon (Join-Path $root 'src/Cassandra.App/Assets/cassandra.ico') `
     --outputDir $releases `
     --runtime win-x64 `
     --framework net10.0-x64-desktop

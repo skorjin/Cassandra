@@ -46,6 +46,7 @@ public partial class App : System.Windows.Application
         hud.Show();
 
         _services.GetRequiredService<HotkeyCoordinator>().Start();
+        _services.GetRequiredService<TrayCoordinator>().Start();
         _services.GetRequiredService<ICaptureLoop>().Start();
 
         _ = StartBackgroundWorkAsync(_services);
@@ -69,6 +70,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IWindowStyler, Win32WindowStyler>();
         services.AddSingleton<IForegroundWindowService, Win32ForegroundWindowService>();
         services.AddSingleton<IHotkeyService, Win32HotkeyService>();
+        services.AddSingleton<ITrayIcon, WinFormsTrayIcon>();
         services.AddSingleton<ModelStorage>();
         services.AddSingleton<IModelStore>(sp => sp.GetRequiredService<ModelStorage>());
         services.AddSingleton<IModelDownloader, HttpModelDownloader>();
@@ -104,6 +106,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<HudViewModel>();
         services.AddSingleton<CaptureFrameViewModel>();
         services.AddSingleton<HotkeyCoordinator>();
+        services.AddSingleton<TrayCoordinator>();
         services.AddSingleton<HudWindow>();
         services.AddSingleton<CaptureFrameWindow>();
 

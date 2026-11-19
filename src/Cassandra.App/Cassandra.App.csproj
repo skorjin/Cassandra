@@ -7,6 +7,7 @@
     <AssemblyName>Cassandra</AssemblyName>
     <RootNamespace>Cassandra.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\cassandra.ico</ApplicationIcon>
     <StartupObject>Cassandra.App.Program</StartupObject>
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
