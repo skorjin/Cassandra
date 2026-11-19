@@ -6,19 +6,42 @@ namespace Cassandra.Presentation.Tests;
 public class HudViewModelTests
 {
     [Fact]
-    public void Translated_lines_appear_and_are_trimmed()
+    public void Each_frame_replaces_what_was_shown()
     {
         var h = new Harness();
-        for (var i = 0; i < 10; i++)
-        {
-            h.Loop.RaiseLines(new TranslatedLine($"orig {i}", $"text {i}", "Nick"));
-        }
+        var a = new TranslatedLine("o a", "text a", "Nick");
+        var b = new TranslatedLine("o b", "text b");
+        var c = new TranslatedLine("o c", "text c");
+        var d = new TranslatedLine("o d", "text d");
 
-        Assert.Equal(HudViewModel.MaxLines, h.Hud.Lines.Count);
-        Assert.Equal("text 9", h.Hud.Lines[^1].Text);
-        Assert.Equal("Nick:", h.Hud.Lines[^1].Speaker);
+        h.Loop.RaiseLines(a, b, c);
+        Assert.Equal(["text a", "text b", "text c"], h.Hud.Lines.Select(l => l.Text));
+        Assert.Equal("Nick:", h.Hud.Lines[0].Speaker);
+
+        h.Loop.RaiseLines(b, c, d); // chat scrolled by one line
+        Assert.Equal(["text b", "text c", "text d"], h.Hud.Lines.Select(l => l.Text));
+
+        h.Loop.RaiseLines(d); // the chat now shows less
+        Assert.Equal(["text d"], h.Hud.Lines.Select(l => l.Text));
+
+        h.Loop.RaiseLines(a, b); // unrelated content
+        Assert.Equal(["text a", "text b"], h.Hud.Lines.Select(l => l.Text));
     }
 
+    [Fact]
+    public void A_scrolled_chat_keeps_the_lines_that_stay_and_only_touches_the_edges()
+    {
+        var h = new Harness();
+        var a = new TranslatedLine("o a", "text a");
+        var b = new TranslatedLine("o b", "text b");
+        var c = new TranslatedLine("o c", "text c");
+        h.Loop.RaiseLines(a, b);
+        var keptB = h.Hud.Lines[1];
+
+        h.Loop.RaiseLines(b, c);
+
+        Assert.Same(keptB, h.Hud.Lines[0]); // the same view model: selection and scroll position survive
+    }
     [Fact]
     public async Task Pause_stops_loop_and_fills_editor_with_original_text()
     {
@@ -69,8 +92,84 @@ public class HudViewModelTests
         await h.Hud.OpenReplyCommand.ExecuteAsync(null);
 
         Assert.False(h.Hud.IsPaused);
-        Assert.True(h.Hud.IsOriginalTab);
         Assert.Equal(1, h.Loop.Resumes);
+        Assert.Equal("EN→RU", h.Hud.LanguageLabel); // live translation shows the chat direction even if Reply was the last tab
+    }
+
+    [Fact]
+    public async Task Pencil_toggles_the_panel_and_remembers_the_selected_tab()
+    {
+        var h = new Harness();
+        await h.Hud.OpenReplyCommand.ExecuteAsync(null);
+        Assert.True(h.Hud.IsReplyTab);
+
+        h.Hud.SelectOriginalTabCommand.Execute(null);
+        await h.Hud.OpenReplyCommand.ExecuteAsync(null); // closes the panel, does not jump to Reply
+        Assert.False(h.Hud.IsPaused);
+
+        await h.Hud.OpenReplyCommand.ExecuteAsync(null); // reopens on the remembered tab
+        Assert.True(h.Hud.IsPaused);
+        Assert.True(h.Hud.IsOriginalTab);
+    }
+
+    [Fact]
+    public void Capture_frame_is_locked_on_a_fresh_start_and_unlocked_by_the_button()
+    {
+        var h = new Harness();
+        Assert.False(h.Hud.Overlay.CanEditFrame);
+
+        h.Hud.ToggleFrameEditCommand.Execute(null);
+        Assert.True(h.Hud.Overlay.CanEditFrame);
+
+        h.Hud.ToggleFrameEditCommand.Execute(null);
+        Assert.False(h.Hud.Overlay.CanEditFrame);
+    }
+
+    [Fact]
+    public async Task Pausing_does_not_unlock_the_capture_frame()
+    {
+        var h = new Harness();
+        await h.Hud.TogglePauseCommand.ExecuteAsync(null);
+        Assert.False(h.Hud.Overlay.CanEditFrame);
+
+        h.Hud.ToggleFrameEditCommand.Execute(null);
+        await h.Hud.TogglePauseCommand.ExecuteAsync(null); // resuming leaves the frame setting alone
+        Assert.True(h.Hud.Overlay.CanEditFrame);
+    }
+
+    [Fact]
+    public async Task Pause_does_not_open_the_editor_panel()
+    {
+        var h = new Harness();
+        await h.Hud.TogglePauseCommand.ExecuteAsync(null);
+
+        Assert.True(h.Hud.IsPaused);
+        Assert.False(h.Hud.IsEditorOpen);
+    }
+
+    [Fact]
+    public async Task Pencil_after_a_manual_pause_opens_and_closes_the_panel_but_stays_paused()
+    {
+        var h = new Harness();
+        await h.Hud.TogglePauseCommand.ExecuteAsync(null);
+
+        await h.Hud.OpenReplyCommand.ExecuteAsync(null);
+        Assert.True(h.Hud.IsEditorOpen);
+
+        await h.Hud.OpenReplyCommand.ExecuteAsync(null);
+        Assert.False(h.Hud.IsEditorOpen);
+        Assert.True(h.Hud.IsPaused);
+    }
+
+    [Fact]
+    public async Task Pause_button_closes_the_open_panel_and_resumes()
+    {
+        var h = new Harness();
+        await h.Hud.OpenReplyCommand.ExecuteAsync(null);
+        await h.Hud.TogglePauseCommand.ExecuteAsync(null);
+
+        Assert.False(h.Hud.IsEditorOpen);
+        Assert.False(h.Hud.IsPaused);
     }
 
     [Fact]
@@ -122,3 +221,4 @@ public class HudViewModelTests
         Assert.False(h.Hud.IsSettingsOpen);
     }
 }
+

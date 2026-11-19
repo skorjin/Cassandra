@@ -64,20 +64,25 @@ public sealed class TesseractOcrEngine : IOcrEngine, IDisposable
             throw new NotSupportedException($"OCR language '{language}' is not supported.");
         }
 
-        if (_engines.TryGetValue(code, out var engine))
+        // Game chats mix scripts (English nicknames, Russian messages, addon notices), so every language is read
+        // with both models at once; otherwise text in the "other" script comes out as garbage.
+        const string combined = "eng+rus";
+        if (_engines.TryGetValue(combined, out var engine))
         {
             return engine;
         }
 
-        var file = Path.Combine(_tessdataPath, code + ".traineddata");
-        if (!File.Exists(file))
+        foreach (var part in LanguageCodes.Values.Append(code).Distinct())
         {
-            throw new FileNotFoundException(
-                $"Tesseract data '{code}.traineddata' not found in '{_tessdataPath}'. Run tools/fetch-models.ps1.");
+            if (!File.Exists(Path.Combine(_tessdataPath, part + ".traineddata")))
+            {
+                throw new FileNotFoundException(
+                    $"Tesseract data '{part}.traineddata' not found in '{_tessdataPath}'.");
+            }
         }
 
-        engine = new TesseractEngine(_tessdataPath, code, EngineMode.LstmOnly);
-        _engines[code] = engine;
+        engine = new TesseractEngine(_tessdataPath, combined, EngineMode.LstmOnly);
+        _engines[combined] = engine;
         return engine;
     }
 

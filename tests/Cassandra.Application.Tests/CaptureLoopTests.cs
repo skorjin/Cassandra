@@ -48,7 +48,7 @@ public class CaptureLoopTests
     {
         var ocr = new CountingOcr();
         var settings = new SettingsService(new MemoryStore());
-        var pipeline = new TranslationPipeline(new FakeCapturer(), new FrameChangeDetector(), ocr, new ChatTextDiffer(), new EchoTranslator());
+        var pipeline = new TranslationPipeline(new FakeCapturer(), new FrameChangeDetector(), ocr, new EchoTranslator());
         using var loop = new CaptureLoopService(pipeline, settings);
 
         var received = new List<TranslatedLine>();
@@ -68,12 +68,12 @@ public class CaptureLoopTests
     }
 
     [Fact]
-    public async Task Moving_the_frame_does_not_repeat_known_lines()
+    public async Task Moving_the_frame_shows_what_is_under_the_new_position()
     {
         var ocr = new CountingOcr();
         var settings = new SettingsService(new MemoryStore());
         var capturer = new FakeCapturer();
-        var pipeline = new TranslationPipeline(capturer, new FrameChangeDetector(), ocr, new ChatTextDiffer(), new EchoTranslator());
+        var pipeline = new TranslationPipeline(capturer, new FrameChangeDetector(), ocr, new EchoTranslator());
         using var loop = new CaptureLoopService(pipeline, settings);
 
         var count = 0;
@@ -85,6 +85,6 @@ public class CaptureLoopTests
         await Task.Delay(300);
         await loop.PauseAsync();
 
-        Assert.Equal(1, count);
+        Assert.Equal(2, count); // once for each position of the frame
     }
 }

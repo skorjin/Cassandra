@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using Cassandra.Application.Detection;
 using Cassandra.Application.Models;
 using Cassandra.Application.Pipeline;
@@ -78,7 +78,8 @@ public partial class App : System.Windows.Application
         {
             var store = sp.GetRequiredService<IModelStore>();
             var active = sp.GetRequiredService<IActiveModelProvider>();
-            return new OnnxMarianTranslator(() => active.ActiveModelId is { } id ? store.GetInstalledDirectory(id) : null);
+            return new TargetLanguageAwareTranslator(
+                new OnnxMarianTranslator(() => active.ActiveModelId is { } id ? store.GetInstalledDirectory(id) : null));
         });
 
         // Application
@@ -86,7 +87,6 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IActiveModelProvider, ActiveModelProvider>();
         services.AddSingleton<IModelManager, ModelManager>();
         services.AddSingleton<IFrameChangeDetector, FrameChangeDetector>();
-        services.AddSingleton<IChatTextDiffer, ChatTextDiffer>();
         services.AddSingleton<TranslationPipeline>();
         services.AddSingleton<ICaptureLoop, CaptureLoopService>();
         services.AddSingleton<IManualTranslationService, ManualTranslationService>();

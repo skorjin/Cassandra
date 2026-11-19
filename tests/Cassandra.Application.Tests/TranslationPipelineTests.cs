@@ -1,4 +1,5 @@
 using Cassandra.Application.Pipeline;
+using Cassandra.Application.Translation;
 using Cassandra.Domain.Abstractions;
 using Cassandra.Domain.Models;
 
@@ -28,12 +29,6 @@ public class TranslationPipelineTests
         }
     }
 
-    private sealed class PassDiffer : IChatTextDiffer
-    {
-        public IReadOnlyList<string> GetNewLines(IReadOnlyList<string> currentLines) => currentLines;
-        public void Reset() { }
-    }
-
     private sealed class UpperTranslator : ITextTranslator
     {
         public Task<string> TranslateAsync(string text, LanguagePair pair, CancellationToken ct) =>
@@ -43,7 +38,7 @@ public class TranslationPipelineTests
     private static (TranslationPipeline Pipeline, FakeOcr Ocr) Build(params bool[] detectorAnswers)
     {
         var ocr = new FakeOcr();
-        return (new TranslationPipeline(new FakeCapturer(), new ScriptedDetector(detectorAnswers), ocr, new PassDiffer(), new UpperTranslator()), ocr);
+        return (new TranslationPipeline(new FakeCapturer(), new ScriptedDetector(detectorAnswers), ocr, new UpperTranslator()), ocr);
     }
 
     [Fact]
@@ -69,6 +64,25 @@ public class TranslationPipelineTests
         Assert.Equal("HELLO", translated.Lines.Single().Translated);
         Assert.IsType<PipelineOutcome.Idle>(third);
         Assert.Equal(1, ocr.Calls);
+    }
+
+    private sealed class RussianOcr : IOcrEngine
+    {
+        public Task<RecognizedText> RecognizeAsync(Frame frame, string language, CancellationToken ct) =>
+            Task.FromResult(new RecognizedText(new[] { "Nick: Привет, как дела" }));
+    }
+
+    [Fact]
+    public async Task Text_already_in_the_target_language_is_left_unchanged()
+    {
+        var pipeline = new TranslationPipeline(new FakeCapturer(), new ScriptedDetector(true, false), new RussianOcr(), new TargetLanguageAwareTranslator(new UpperTranslator()));
+        var region = new CaptureRegion(0, 0, 1, 1);
+
+        await pipeline.RunOnceAsync(region, LanguagePair.EnRu, default);
+        var outcome = await pipeline.RunOnceAsync(region, LanguagePair.EnRu, default);
+
+        var line = Assert.IsType<PipelineOutcome.Translated>(outcome).Lines.Single();
+        Assert.Equal("Привет, как дела", line.Translated);
     }
 
     [Fact]

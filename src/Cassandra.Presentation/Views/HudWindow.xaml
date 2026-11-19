@@ -16,6 +16,7 @@
             </MultiBinding>
         </Border.Background>
 
+        <Grid>
         <StackPanel>
             <!-- Header: drag handle, status dot, language, icons -->
             <Grid x:Name="Header" Background="Transparent" Height="32">
@@ -45,6 +46,20 @@
                            VerticalAlignment="Center" Margin="7,0,0,0"/>
 
                 <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="0,0,5,0" VerticalAlignment="Center">
+                    <Button Style="{StaticResource IconButton}" Command="{Binding ToggleFrameEditCommand}"
+                            ToolTip="Двигать рамку захвата (Ctrl+Alt+E)" AutomationProperties.Name="Рамка захвата">
+                        <Path Data="{StaticResource IconFrame}">
+                            <Path.Style>
+                                <Style TargetType="Path" BasedOn="{StaticResource IconPath}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Overlay.CanEditFrame}" Value="True">
+                                            <Setter Property="Stroke" Value="{StaticResource SpeakerBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
+                    </Button>
                     <Button Style="{StaticResource IconButton}" Command="{Binding OpenReplyCommand}"
                             ToolTip="Написать ответ (Ctrl+Alt+R)" AutomationProperties.Name="Написать ответ">
                         <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPencil}"/>
@@ -78,9 +93,9 @@
 
             <!-- Translated text and, when paused, the editor -->
             <StackPanel Margin="10,8,10,10">
-                <v:TranslationView/>
+                <Border x:Name="TextArea"><v:TranslationView x:Name="Translation"/></Border>
 
-                <StackPanel Margin="0,8,0,0" Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Margin="0,8,0,0" Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
                     <Rectangle Height="1" Fill="{StaticResource LineBrush}" Margin="0,0,0,8"/>
                     <Border Background="#4D000000" CornerRadius="6" Padding="2" Margin="0,0,0,8">
                         <UniformGrid Rows="1">
@@ -103,5 +118,34 @@
                 <v:SettingsDrawerView/>
             </StackPanel>
         </StackPanel>
+
+        <!-- Resize handles: right edge, bottom edge and the corner grip -->
+        <Thumb x:Name="RightEdge" Style="{DynamicResource EdgeThumb}" HorizontalAlignment="Right" Width="6" Margin="0,34,0,14" Cursor="SizeWE"/>
+        <Thumb x:Name="BottomEdge" Style="{DynamicResource EdgeThumb}" VerticalAlignment="Bottom" Height="6" Margin="8,0,14,0" Cursor="SizeNS"/>
+        <Thumb x:Name="CornerGrip" Style="{DynamicResource CornerThumb}" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+               Width="14" Height="14" Cursor="SizeNWSE" ToolTip="Изменить размер"/>
+        </Grid>
     </Border>
+    <Window.Resources>
+        <Style x:Key="EdgeThumb" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb"><Border Background="Transparent"/></ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CornerThumb" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Grid Background="Transparent">
+                            <Path Data="M 12,4 L 4,12 M 12,8 L 8,12" Stroke="{StaticResource MutedBrush}" StrokeThickness="1.2"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 </Window>
+

@@ -133,20 +133,29 @@ public partial class CaptureFrameWindow : Window
 
     private void OnOverlayChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(OverlayState.IsLocked) or nameof(OverlayState.IsVisible))
+        if (e.PropertyName is nameof(OverlayState.IsLocked) or nameof(OverlayState.IsVisible)
+            or nameof(OverlayState.CanEditFrame))
         {
             ApplyVisibility();
         }
     }
 
-    /// <summary>The frame is only shown while unlocked and the overlay is visible.</summary>
+    /// <summary>
+    /// The frame is shown while unlocked and the overlay is visible. Only while paused (or in edit mode) it catches
+    /// the mouse; during live translation clicks and scrolling go through it to the game chat.
+    /// </summary>
     private void ApplyVisibility()
     {
         var overlay = _viewModel.Overlay;
         Visibility = overlay.IsVisible && !overlay.IsLocked ? Visibility.Visible : Visibility.Collapsed;
+        var editable = overlay.CanEditFrame && !overlay.IsLocked;
+        Cursor = editable ? Cursors.SizeAll : Cursors.Arrow;
+        var grips = editable ? Visibility.Visible : Visibility.Collapsed;
+        TopLeft.Visibility = TopRight.Visibility = BottomLeft.Visibility = BottomRight.Visibility = grips;
+        Border.Opacity = editable ? 1 : 0.45;
         if (_hwnd != IntPtr.Zero)
         {
-            _styler.SetClickThrough(_hwnd, overlay.IsLocked);
+            _styler.SetClickThrough(_hwnd, !editable);
         }
     }
 

@@ -10,8 +10,6 @@ public abstract record PipelineOutcome
     /// <summary>Frame is still changing (chat is animating); OCR is postponed until it settles.</summary>
     public sealed record Settling : PipelineOutcome;
 
-    /// <summary>OCR ran but produced no new lines.</summary>
-    public sealed record NoNewText : PipelineOutcome;
-
+    /// <summary>Everything the frame shows right now, translated. Replaces whatever was displayed before.</summary>
     public sealed record Translated(IReadOnlyList<TranslatedLine> Lines) : PipelineOutcome;
 }

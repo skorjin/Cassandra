@@ -7,7 +7,7 @@
         ResizeMode="NoResize" Topmost="True" ShowInTaskbar="False" ShowActivated="False"
         MinWidth="120" MinHeight="40" Width="380" Height="120" Cursor="SizeAll">
     <Grid>
-        <Rectangle Stroke="#7FD1FF" StrokeThickness="1.5" StrokeDashArray="4 3" Margin="1" RadiusX="3" RadiusY="3"/>
+        <Rectangle x:Name="Border" Stroke="#7FD1FF" StrokeThickness="1.5" StrokeDashArray="4 3" Margin="1" RadiusX="3" RadiusY="3"/>
 
         <!-- Corner grips -->
         <Thumb x:Name="TopLeft" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE"/>

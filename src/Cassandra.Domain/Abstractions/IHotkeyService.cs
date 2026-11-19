@@ -6,6 +6,7 @@ public enum HotkeyAction
     ToggleVisibility,
     ToggleLock,
     OpenReply,
+    ToggleFrameEdit,
 }
 
 public interface IHotkeyService : IDisposable

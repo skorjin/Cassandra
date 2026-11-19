@@ -39,6 +39,10 @@ public sealed class HotkeyCoordinator : IDisposable
             case HotkeyAction.ToggleLock:
                 _overlay.IsLocked = !_overlay.IsLocked;
                 break;
+            case HotkeyAction.ToggleFrameEdit:
+                _overlay.IsVisible = true;
+                _overlay.IsFrameEditMode = !_overlay.IsFrameEditMode;
+                break;
             case HotkeyAction.OpenReply:
                 _overlay.IsVisible = true;
                 _hud.OpenReplyCommand.Execute(null);

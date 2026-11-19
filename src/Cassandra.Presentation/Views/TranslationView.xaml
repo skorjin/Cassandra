@@ -2,17 +2,25 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel>
-        <ItemsControl ItemsSource="{Binding Lines}" Focusable="False">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,4" FontSize="13" LineHeight="18"
-                               Foreground="{StaticResource TextBrush}" ToolTip="{Binding Original}">
-                        <Run Text="{Binding Speaker, Mode=OneWay}" Foreground="{StaticResource SpeakerBrush}" FontWeight="SemiBold"/>
-                        <Run Text="{Binding Text, Mode=OneWay}"/>
-                    </TextBlock>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- Translated lines: read-only but selectable (mouse, Ctrl+C). Filled from code-behind so selection survives new lines. -->
+        <RichTextBox x:Name="Output" IsReadOnly="True" IsDocumentEnabled="False" Focusable="True" Cursor="IBeam"
+                     Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,0,4"
+                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                     IsInactiveSelectionHighlightEnabled="True" SelectionBrush="{StaticResource AccentBrush}" SelectionOpacity="0.45"
+                     AutomationProperties.Name="Перевод"
+                     FontSize="{Binding Settings.FontSize}"
+                     Foreground="{Binding Settings.TextColor, Converter={StaticResource HexToBrushConverter}}">
+            <RichTextBox.Style>
+                <Style TargetType="RichTextBox">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Lines.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </RichTextBox.Style>
+            <FlowDocument PagePadding="0" LineStackingStrategy="MaxHeight"/>
+        </RichTextBox>
 
         <!-- Errors -->
         <TextBlock Text="{Binding Status}" Style="{StaticResource HintText}" Foreground="{StaticResource WarnBrush}"

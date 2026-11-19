@@ -12,6 +12,7 @@ public sealed class Win32HotkeyService : IHotkeyService
         (HotkeyAction.ToggleVisibility, 'H'),
         (HotkeyAction.ToggleLock, 'L'),
         (HotkeyAction.OpenReply, 'R'),
+        (HotkeyAction.ToggleFrameEdit, 'E'),
     ];
 
     private Thread? _thread;

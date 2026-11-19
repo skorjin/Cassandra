@@ -20,7 +20,25 @@ public sealed class OnnxMarianTranslator : ITextTranslator, IDisposable
     public Task<string> TranslateAsync(string text, LanguagePair pair, CancellationToken ct) =>
         string.IsNullOrWhiteSpace(text)
             ? Task.FromResult(string.Empty)
-            : Task.Run(() => GetModel(pair).Translate(text, ct), ct);
+            : Task.Run(() => TranslateSentences(text, pair, ct), ct);
+
+    /// <summary>Marian is trained on single sentences: given several at once it tends to merge or drop some.</summary>
+    private string TranslateSentences(string text, LanguagePair pair, CancellationToken ct)
+    {
+        var model = GetModel(pair);
+        var parts = new List<string>();
+        foreach (var sentence in SentenceSplitter.Split(text))
+        {
+            ct.ThrowIfCancellationRequested();
+            var translated = model.Translate(sentence, ct);
+            if (!string.IsNullOrWhiteSpace(translated))
+            {
+                parts.Add(translated.Trim());
+            }
+        }
+
+        return string.Join(' ', parts);
+    }
 
     private MarianModel GetModel(LanguagePair pair)
     {

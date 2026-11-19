@@ -30,7 +30,7 @@ public class PipelineRecoveryTests
     public async Task Lines_seen_while_no_model_was_installed_are_translated_once_it_is()
     {
         var translator = new SwitchableTranslator();
-        var pipeline = new TranslationPipeline(new StableCapturer(), new FrameChangeDetector(), new FixedOcr(), new ChatTextDiffer(), translator);
+        var pipeline = new TranslationPipeline(new StableCapturer(), new FrameChangeDetector(), new FixedOcr(), translator);
         var region = new CaptureRegion(0, 0, 8, 8);
 
         await pipeline.RunOnceAsync(region, LanguagePair.EnRu, default);                       // first frame counts as a change

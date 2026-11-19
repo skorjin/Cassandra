@@ -9,6 +9,14 @@ public sealed partial class OverlayState : ObservableObject
     [ObservableProperty]
     private bool _isLocked;
 
+    /// <summary>The player unlocked the capture frame with the HUD button or Ctrl+Alt+E. Pausing does not affect it.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanEditFrame))]
+    private bool _isFrameEditMode;
+
+    /// <summary>The capture frame can be moved and resized. Otherwise clicks pass through it to the game.</summary>
+    public bool CanEditFrame => IsFrameEditMode;
+
     /// <summary>HUD and capture frame are shown.</summary>
     [ObservableProperty]
     private bool _isVisible = true;

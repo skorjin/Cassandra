@@ -54,6 +54,41 @@ public class ReplyAndSettingsTests
     }
 
     [Fact]
+    public async Task Font_size_and_color_are_persisted_and_clamped()
+    {
+        var h = new Harness();
+        var vm = h.Hud.Settings;
+
+        vm.FontSize = 20;
+        vm.SelectTextColorCommand.Execute(vm.TextColors[2]);
+        await Task.Delay(150);
+        Assert.Equal(20, h.Store.Saved.FontSize);
+        Assert.Equal(vm.TextColors[2].Hex, h.Store.Saved.TextColor);
+        Assert.True(vm.TextColors[2].IsSelected);
+        Assert.False(vm.TextColors[0].IsSelected);
+
+        vm.FontSize = 99;
+        await Task.Delay(150);
+        Assert.Equal(SettingsViewModel.MaxFontSize, h.Store.Saved.FontSize);
+    }
+
+    [Fact]
+    public void Drawer_sections_switch_and_missing_model_opens_the_models_page()
+    {
+        var h = new Harness();
+        var vm = h.Hud.Settings;
+        Assert.True(vm.IsAppearance);
+
+        vm.ShowSectionCommand.Execute(SettingsSection.Languages);
+        Assert.True(vm.IsLanguages);
+        Assert.False(vm.IsAppearance);
+
+        h.Hud.OpenSettingsCommand.Execute(null);
+        Assert.True(h.Hud.IsSettingsOpen);
+        Assert.True(vm.IsModels);
+    }
+
+    [Fact]
     public async Task Settings_changes_are_persisted()
     {
         var h = new Harness();

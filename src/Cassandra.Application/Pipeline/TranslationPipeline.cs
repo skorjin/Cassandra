@@ -3,13 +3,15 @@ using Cassandra.Domain.Models;
 
 namespace Cassandra.Application.Pipeline;
 
-/// <summary>One pass: capture, detect change, wait for it to settle, OCR, diff, translate. Everything in memory.</summary>
+/// <summary>
+/// One pass: capture, detect change, wait for it to settle, OCR, translate. The result is exactly what the frame shows
+/// right now. The only shortcut is the change detector: a static chat is not recognized and translated again. All in memory.
+/// </summary>
 public sealed class TranslationPipeline
 {
     private readonly IScreenCapturer _capturer;
     private readonly IFrameChangeDetector _detector;
     private readonly IOcrEngine _ocr;
-    private readonly IChatTextDiffer _differ;
     private readonly ITextTranslator _translator;
     private bool _pending;
 
@@ -17,13 +19,11 @@ public sealed class TranslationPipeline
         IScreenCapturer capturer,
         IFrameChangeDetector detector,
         IOcrEngine ocr,
-        IChatTextDiffer differ,
         ITextTranslator translator)
     {
         _capturer = capturer;
         _detector = detector;
         _ocr = ocr;
-        _differ = differ;
         _translator = translator;
     }
 
@@ -45,46 +45,34 @@ public sealed class TranslationPipeline
         _pending = false;
 
         var recognized = await _ocr.RecognizeAsync(frame, pair.Source, ct).ConfigureAwait(false);
-        var newLines = _differ.GetNewLines(recognized.Lines);
-        if (newLines.Count == 0)
-        {
-            return new PipelineOutcome.NoNewText();
-        }
-
-        var result = new List<TranslatedLine>(newLines.Count);
+        var snapshot = new List<TranslatedLine>(recognized.Lines.Count);
         try
         {
-            foreach (var line in newLines)
+            foreach (var line in recognized.Lines.Where(l => l.Any(char.IsLetterOrDigit)))
             {
                 ct.ThrowIfCancellationRequested();
                 var parsed = ChatLineParser.Parse(line);
                 var translated = await _translator.TranslateAsync(parsed.Message, pair, ct).ConfigureAwait(false);
-                result.Add(new TranslatedLine(line, translated, parsed.Speaker));
+                snapshot.Add(new TranslatedLine(line, translated, parsed.Speaker));
             }
         }
         catch
         {
-            // Nothing was shown, so these lines must count as unseen: once translation works again (for example
-            // after the player installs a model) they are recognized and translated instead of being lost.
-            _differ.Reset();
+            // Nothing was shown, so the frame must be processed again (for example once a model is installed).
             _pending = true;
             throw;
         }
 
-        return new PipelineOutcome.Translated(result);
+        return new PipelineOutcome.Translated(snapshot);
     }
 
-    /// <summary>Forget the previous frame only. Already seen chat lines stay known, so nudging the frame does not repeat them.</summary>
+    /// <summary>Forget the previous frame, e.g. after the capture frame moved.</summary>
     public void ResetFrame()
     {
         _pending = false;
         _detector.Reset();
     }
 
-    /// <summary>Forget everything, e.g. after the language pair changed.</summary>
-    public void Reset()
-    {
-        ResetFrame();
-        _differ.Reset();
-    }
+    /// <summary>Forget the previous frame after the language pair changed.</summary>
+    public void Reset() => ResetFrame();
 }

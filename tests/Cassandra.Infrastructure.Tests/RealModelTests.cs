@@ -54,6 +54,7 @@ public class RealModelTests(RealModelFixture fixture, ITestOutputHelper output) 
     [InlineData("gg, that was close", "en", "ru")]
     [InlineData("Принято, иду на крышу, прикрой справа", "ru", "en")]
     [InlineData("Нужен медик на точке Б", "ru", "en")]
+    [InlineData("привет! есть у кого-то квесты тут? поделитесь пожалуйста!", "ru", "en")]
     public async Task Translates_with_the_downloaded_model(string text, string from, string to)
     {
         using var translator = new OnnxMarianTranslator(() => fixture.Directory);
